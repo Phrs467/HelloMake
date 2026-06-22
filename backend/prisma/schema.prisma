@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Administrador {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  criadoEm  DateTime @default(now())
+}
+
+model Categoria {
+  id        String    @id @default(uuid())
+  nome      String
+  slug      String    @unique
+  descricao String?
+  produtos  Produto[]
+}
+
+model Marca {
+  id        String    @id @default(uuid())
+  nome      String    @unique
+  slug      String    @unique
+  logoUrl   String?
+  produtos  Produto[]
+}
+
+model Produto {
+  id               String          @id @default(uuid())
+  nome             String
+  slug             String          @unique
+  descricao        String
+  comoUsar         String?
+  ingredientes     String?
+  preco            Float
+  precoPromocional Float?
+  destaque         Boolean         @default(false)
+  estoque          Int             @default(0)
+  criadoEm         DateTime        @default(now())
+  atualizadoEm     DateTime        @updatedAt
+
+  categoriaId      String
+  categoria        Categoria       @relation(fields: [categoriaId], references: [id])
+  marcaId          String
+  marca            Marca           @relation(fields: [marcaId], references: [id])
+
+  imagens          ImagemProduto[]
+}
+
+model ImagemProduto {
+  id        String   @id @default(uuid())
+  produtoId String
+  produto   Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  url       String
+  principal Boolean  @default(false)
+}
