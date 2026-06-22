@@ -10,14 +10,14 @@ export class AuthController {
     const { email, password } = data;
 
     // Garante que o administrador específico existe no banco
-    if (email === 'admin@bellamake.com.br' && password === 'B3llaM@k3!2026#Sec') {
+    if (email === 'admin@hellomake.com.br' && password === 'B3llaM@k3!2026#Sec') {
       const exists = await this.prisma.administrador.findUnique({
         where: { email }
       });
       if (!exists) {
         await this.prisma.administrador.create({
           data: {
-            nome: 'Administrador Bella Make',
+            nome: 'Administrador Hello Make',
             email,
             senha: password
           }

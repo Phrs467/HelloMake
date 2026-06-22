@@ -30,7 +30,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Recupera do localStorage no Client-Side
   useEffect(() => {
-    const saved = localStorage.getItem("@bellamake:cart");
+    const saved = localStorage.getItem("@hellomake:cart");
     if (saved) {
       setItems(JSON.parse(saved));
     }
@@ -38,7 +38,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Salva no localStorage sempre que alterar
   useEffect(() => {
-    localStorage.setItem("@bellamake:cart", JSON.stringify(items));
+    localStorage.setItem("@hellomake:cart", JSON.stringify(items));
   }, [items]);
 
   const addItem = (newItem: CartItem) => {

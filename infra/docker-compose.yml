@@ -3,35 +3,35 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: bellamake-postgres
+    container_name: hellomake-postgres
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bella123}
-      POSTGRES_DB: ${POSTGRES_DB:-bellamake_db}
+      POSTGRES_DB: ${POSTGRES_DB:-hellomake_db}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - bellamake-network
+      - hellomake-network
 
   redis:
     image: redis:7-alpine
-    container_name: bellamake-redis
+    container_name: hellomake-redis
     restart: always
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - bellamake-network
+      - hellomake-network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: bellamake-api
+    container_name: hellomake-api
     restart: always
     depends_on:
       - db
@@ -39,19 +39,19 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-bella123}@db:5432/${POSTGRES_DB:-bellamake_db}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-bella123}@db:5432/${POSTGRES_DB:-hellomake_db}?schema=public
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - PORT=3001
       - JWT_SECRET=${JWT_SECRET:-supersecret}
     networks:
-      - bellamake-network
+      - hellomake-network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: bellamake-web
+    container_name: hellomake-web
     restart: always
     depends_on:
       - backend
@@ -60,11 +60,11 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
     networks:
-      - bellamake-network
+      - hellomake-network
 
   nginx:
     image: nginx:alpine
-    container_name: bellamake-nginx
+    container_name: hellomake-nginx
     restart: always
     ports:
       - "80:80"
@@ -77,12 +77,12 @@ services:
       - frontend
       - backend
     networks:
-      - bellamake-network
+      - hellomake-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  bellamake-network:
+  hellomake-network:
     driver: bridge
