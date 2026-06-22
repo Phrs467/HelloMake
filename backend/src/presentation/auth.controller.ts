@@ -9,8 +9,11 @@ export class AuthController {
   async login(@Body() data: any) {
     const { email, password } = data;
 
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@hellomake.com.br';
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
     // Garante que o administrador específico existe no banco
-    if (email === 'admin@hellomake.com.br' && password === 'B3llaM@k3!2026#Sec') {
+    if (adminPassword && email === adminEmail && password === adminPassword) {
       const exists = await this.prisma.administrador.findUnique({
         where: { email }
       });
