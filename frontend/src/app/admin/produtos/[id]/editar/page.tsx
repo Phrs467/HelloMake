@@ -11,7 +11,7 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
   const resolvedParams = use(params);
   const productId = resolvedParams.id;
   const router = useRouter();
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [productData, setProductData] = useState<any>(null);
@@ -22,7 +22,39 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImageBase64(reader.result as string);
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
+            setImageBase64(compressedBase64);
+          } else {
+            setImageBase64(reader.result as string);
+          }
+        };
+        img.src = reader.result as string;
       };
       reader.readAsDataURL(file);
     }
@@ -41,7 +73,7 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    
+
     const form = e.currentTarget;
     const formData = new FormData(form);
     const data = {
@@ -86,16 +118,16 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
       {/* Header do Formulário */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-2">
-           <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-              <Package className="w-5 h-5" />
-           </div>
-           <h1 className="text-4xl font-outfit font-black tracking-tight text-gray-900">Editar Produto</h1>
+          <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+            <Package className="w-5 h-5" />
+          </div>
+          <h1 className="text-4xl font-outfit font-black tracking-tight text-gray-900">Editar Produto</h1>
         </div>
         <p className="text-gray-500 text-lg ml-14">Modifique as informações e atualize o catálogo.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8 relative">
-        
+
         {success && (
           <div className="absolute -top-4 right-0 bg-green-50 text-green-700 px-6 py-4 rounded-2xl border border-green-200 shadow-lg shadow-green-100 flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
             <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -107,13 +139,13 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
         )}
 
         <div className="bg-white p-10 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
-          
+
           <h3 className="font-outfit font-bold text-xl text-gray-800 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
             Informações do Produto
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            
+
             <div className="space-y-2 col-span-1 md:col-span-2">
               <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider ml-1">Nome do Produto</label>
               <div className="relative">
@@ -137,7 +169,7 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
                 <Package className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider ml-1">Categoria Principal</label>
               <div className="relative">
@@ -151,7 +183,7 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
                 <Bookmark className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1.5L6 6.5L11 1.5" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M1 1.5L6 6.5L11 1.5" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
               </div>
