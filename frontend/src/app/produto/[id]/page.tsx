@@ -11,7 +11,7 @@ import { API_BASE_URL } from "@/lib/constants";
 export default async function ProductDetails({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
   const productId = resolvedParams.id;
-  
+
   let product: any = null;
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/products/${productId}`, { cache: 'no-store' });
@@ -26,13 +26,13 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
     return <div className="min-h-screen flex items-center justify-center bg-[#FDF0F5]">Produto não encontrado.</div>;
   }
 
-  const whatsappNumber = "5562983181287";
+  const whatsappNumber = "5562982882075";
   const whatsappMessage = encodeURIComponent(`Olá! Gostaria de comprar o produto: *${product.nome}* (R$ ${Number(product.preco).toFixed(2).replace('.', ',')}). Ainda tem disponível?`);
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   return (
     <main className="min-h-screen bg-[#FFF0F5] text-charcoal font-inter">
-      
+
       {/* Header */}
       <header className="fixed top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-pink-200 shadow-sm transition-all duration-300">
         <div className="container mx-auto px-4 h-20 flex items-center justify-between">
@@ -41,20 +41,20 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
               <ChevronLeft className="w-5 h-5" />
             </Link>
             <Link href="/" className="flex items-center hidden md:flex">
-              <img 
-                src="/logo.jpg" 
-                alt="Hello Make e Acessórios" 
-                className="h-12 w-auto object-contain drop-shadow-sm mix-blend-multiply" 
+              <img
+                src="/logo.jpg"
+                alt="Hello Make e Acessórios"
+                className="h-12 w-auto object-contain drop-shadow-sm mix-blend-multiply"
               />
             </Link>
           </div>
-          
+
           <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 font-medium text-[15px] tracking-wide">
             <Link href="/catalogo" className="group font-bold px-6 py-2.5 rounded-full transition-all duration-300 hover:bg-pink-100 hover:text-hotPink text-[#4A4A4A] flex items-center justify-center">
               <span className="transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-0.5">Catálogo</span>
             </Link>
           </nav>
-          
+
           <div className="flex items-center gap-4">
             <HeaderCartIcon />
           </div>
@@ -64,7 +64,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
       {/* Product Content */}
       <section className="pt-32 pb-24 container mx-auto px-4">
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
-          
+
           {/* Coluna da Imagem */}
           <div className="w-full lg:w-1/2 flex-shrink-0">
             <div className="aspect-[4/5] rounded-[3rem] overflow-hidden bg-white relative shadow-xl shadow-pink-100/50 border-4 border-white ring-1 ring-pink-200">
@@ -72,8 +72,8 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
                 <ImageZoom src={product.imagens[0].url} alt={product.nome} />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-[#FFF0F5]">
-                   <div className="absolute w-64 h-64 bg-pink-200/50 rounded-full blur-3xl top-20 left-20"></div>
-                   <div className="text-hotPink/30 font-bold tracking-widest uppercase opacity-50 rotate-[-45deg] text-5xl">Foto aqui</div>
+                  <div className="absolute w-64 h-64 bg-pink-200/50 rounded-full blur-3xl top-20 left-20"></div>
+                  <div className="text-hotPink/30 font-bold tracking-widest uppercase opacity-50 rotate-[-45deg] text-5xl">Foto aqui</div>
                 </div>
               )}
             </div>
@@ -81,7 +81,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
 
           {/* Coluna das Informações */}
           <div className="w-full lg:w-1/2 flex flex-col gap-6 py-4">
-            
+
             {/* Bloco Título e Preço */}
             <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-lg shadow-pink-100/40 border border-pink-200">
               <span className="inline-block px-4 py-1.5 bg-pink-100 text-[#D81B60] rounded-full text-xs font-black tracking-widest uppercase mb-6 shadow-sm shadow-pink-100">
@@ -93,7 +93,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-outfit font-black tracking-tight leading-tight text-gray-900 mb-6">
                 {product.nome}
               </h1>
-              
+
               <div className="flex items-center gap-2 mb-6">
                 {product.estoque > 0 ? (
                   <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase border ${product.estoque <= 5 ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
@@ -129,7 +129,7 @@ export default async function ProductDetails({ params }: { params: Promise<{ id:
               <div className="w-full sm:w-1/2">
                 <AddToCartButton product={product} />
               </div>
-              <a 
+              <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
