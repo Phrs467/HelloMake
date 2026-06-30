@@ -72,11 +72,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="p-4 border-t border-pink-100">
+        <div className="p-4 border-t border-pink-100 flex flex-col gap-2">
           <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-hotPink hover:bg-pink-100 transition-colors font-medium">
             <LogOut className="w-5 h-5" />
             Sair e Deslogar
           </button>
+          <div className="text-[10px] text-gray-400 text-center font-mono select-none border-t border-pink-50 pt-2">
+            Versão: 1.0.1 (Limites e Canvas)
+          </div>
         </div>
       </aside>
 

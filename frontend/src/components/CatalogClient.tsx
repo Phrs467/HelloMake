@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Filter, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Filter, SlidersHorizontal, ChevronDown, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function CatalogClient({ initialProducts, categoriasFalsas, categoriaFiltro }: { initialProducts: any[], categoriasFalsas: string[], categoriaFiltro?: string }) {
@@ -94,25 +94,44 @@ export function CatalogClient({ initialProducts, categoriasFalsas, categoriaFilt
               <div className={`space-y-2 overflow-y-auto custom-scrollbar transition-all duration-300 ${isCategoriasOpen ? 'max-h-[300px] opacity-100 pr-2' : 'max-h-0 opacity-0'}`}>
                 <button 
                   onClick={() => router.push('/catalogo')}
-                  className="flex items-center gap-3 p-3 rounded-xl hover:bg-pink-50 w-full cursor-pointer transition-colors border border-transparent hover:border-pink-200"
+                  className={`flex items-center gap-3 p-3 rounded-xl w-full cursor-pointer transition-all duration-200 border ${
+                    !categoriaFiltro 
+                      ? 'bg-white border-pink-200 shadow-sm text-hotPink font-bold scale-[1.02]' 
+                      : 'bg-transparent border-transparent hover:bg-pink-50/50 hover:border-pink-100 text-gray-700 font-medium'
+                  }`}
                 >
-                  <div className={`w-5 h-5 shrink-0 rounded border-2 border-pink-300 flex items-center justify-center bg-white ${!categoriaFiltro ? 'bg-hotPink border-hotPink' : ''}`}>
-                    {!categoriaFiltro && <div className="w-2 h-2 bg-white rounded-sm" />}
+                  <div className={`w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                    !categoriaFiltro 
+                      ? 'bg-[#D81B60] border-[#D81B60] scale-110 shadow-md shadow-pink-200/50' 
+                      : 'bg-white border-pink-300 hover:border-hotPink'
+                  }`}>
+                    {!categoriaFiltro && <Check className="w-3.5 h-3.5 text-white stroke-[3.5] animate-in zoom-in-50 duration-200" />}
                   </div>
-                  <span className="font-medium text-gray-700 text-left">Todas</span>
+                  <span className="text-left text-sm">Todas</span>
                 </button>
-                {sortedCategorias.map(cat => (
-                  <button 
-                    key={cat} 
-                    onClick={() => router.push(`/catalogo?categoria=${cat}`)}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-pink-50 w-full cursor-pointer transition-colors border border-transparent hover:border-pink-200"
-                  >
-                    <div className={`w-5 h-5 shrink-0 rounded border-2 border-pink-300 flex items-center justify-center bg-white ${categoriaFiltro === cat ? 'bg-hotPink border-hotPink' : ''}`}>
-                      {categoriaFiltro === cat && <div className="w-2 h-2 bg-white rounded-sm" />}
-                    </div>
-                    <span className="font-medium text-gray-700 text-left">{cat}</span>
-                  </button>
-                ))}
+                {sortedCategorias.map(cat => {
+                  const isSelected = categoriaFiltro === cat;
+                  return (
+                    <button 
+                      key={cat} 
+                      onClick={() => router.push(`/catalogo?categoria=${cat}`)}
+                      className={`flex items-center gap-3 p-3 rounded-xl w-full cursor-pointer transition-all duration-200 border ${
+                        isSelected 
+                          ? 'bg-white border-pink-200 shadow-sm text-hotPink font-bold scale-[1.02]' 
+                          : 'bg-transparent border-transparent hover:bg-pink-50/50 hover:border-pink-100 text-gray-700 font-medium'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                        isSelected 
+                          ? 'bg-[#D81B60] border-[#D81B60] scale-110 shadow-md shadow-pink-200/50' 
+                          : 'bg-white border-pink-300 hover:border-hotPink'
+                      }`}>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3.5] animate-in zoom-in-50 duration-200" />}
+                      </div>
+                      <span className="text-left text-sm">{cat}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -126,18 +145,29 @@ export function CatalogClient({ initialProducts, categoriasFalsas, categoriaFilt
                   <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isMarcasOpen ? 'rotate-180' : ''}`} />
                 </button>
                 <div className={`space-y-2 overflow-y-auto custom-scrollbar transition-all duration-300 ${isMarcasOpen ? 'max-h-[300px] opacity-100 pr-2' : 'max-h-0 opacity-0'}`}>
-                  {uniqueBrands.map(brand => (
-                    <button 
-                      key={brand}
-                      onClick={() => toggleBrand(brand)}
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-pink-50 w-full cursor-pointer transition-colors border border-transparent hover:border-pink-200"
-                    >
-                      <div className={`w-5 h-5 shrink-0 rounded border-2 border-pink-300 flex items-center justify-center bg-white ${selectedBrands.includes(brand) ? 'bg-hotPink border-hotPink' : ''}`}>
-                        {selectedBrands.includes(brand) && <div className="w-2 h-2 bg-white rounded-sm" />}
-                      </div>
-                      <span className="font-medium text-gray-700 text-left">{brand}</span>
-                    </button>
-                  ))}
+                  {uniqueBrands.map(brand => {
+                    const isSelected = selectedBrands.includes(brand);
+                    return (
+                      <button 
+                        key={brand}
+                        onClick={() => toggleBrand(brand)}
+                        className={`flex items-center gap-3 p-3 rounded-xl w-full cursor-pointer transition-all duration-200 border ${
+                          isSelected 
+                            ? 'bg-white border-pink-200 shadow-sm text-hotPink font-bold scale-[1.02]' 
+                            : 'bg-transparent border-transparent hover:bg-pink-50/50 hover:border-pink-100 text-gray-700 font-medium'
+                        }`}
+                      >
+                        <div className={`w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                          isSelected 
+                            ? 'bg-[#D81B60] border-[#D81B60] scale-110 shadow-md shadow-pink-200/50' 
+                            : 'bg-white border-pink-300 hover:border-hotPink'
+                        }`}>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-white stroke-[3.5] animate-in zoom-in-50 duration-200" />}
+                        </div>
+                        <span className="text-left text-sm">{brand}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
