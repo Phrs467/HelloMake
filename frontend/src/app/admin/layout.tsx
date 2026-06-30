@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Package, LayoutDashboard, Settings, LogOut, ShoppingCart } from "lucide-react";
+import { Package, LayoutDashboard, Settings, LogOut, ShoppingCart, Bookmark } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -60,7 +60,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 px-4 py-6 space-y-2">
           {[
             { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-            { href: '/admin/produtos', label: 'Catálogo', icon: Package, exact: false }
+            { href: '/admin/produtos', label: 'Catálogo', icon: Package, exact: false },
+            { href: '/admin/categorias', label: 'Categorias', icon: Bookmark, exact: false }
           ].map((item) => {
             const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             return (
@@ -78,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Sair e Deslogar
           </button>
           <div className="text-[10px] text-gray-400 text-center font-mono select-none border-t border-pink-50 pt-2">
-            Versão: 1.0.1 (Limites e Canvas)
+            Versão: 1.1.0 (Categorias)
           </div>
         </div>
       </aside>
