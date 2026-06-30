@@ -11,16 +11,15 @@ export default function NovoProduto() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [imageBase64, setImageBase64] = useState("");
+  const [mainImage, setMainImage] = useState("");
+  const [secondaryImage, setSecondaryImage] = useState("");
   const [categories, setCategories] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadCategories() {
       try {
         const res = await fetch(`${API_BASE_URL}/api/v1/categories`);
-        if (res.ok) {
-          setCategories(await res.json());
-        }
+        if (res.ok) setCategories(await res.json());
       } catch (err) {
         console.error("Erro ao carregar categorias:", err);
       }
@@ -28,61 +27,47 @@ export default function NovoProduto() {
     loadCategories();
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-            setImageBase64(compressedBase64);
-          } else {
-            setImageBase64(reader.result as string);
-          }
-        };
-        img.src = reader.result as string;
+  const processImage = (file: File, callback: (base64: string) => void) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        const MAX = 1200;
+        if (width > height && width > MAX) { height *= MAX / width; width = MAX; }
+        else if (height > MAX) { width *= MAX / height; height = MAX; }
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL("image/jpeg", 0.7));
+        } else {
+          callback(reader.result as string);
+        }
       };
-      reader.readAsDataURL(file);
-    }
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
     
-    if (!imageBase64) {
-      alert("Por favor, selecione uma imagem para o produto.");
+    if (!mainImage) {
+      alert("Por favor, selecione a imagem principal do produto.");
       setLoading(false);
       return;
     }
     
     const form = e.currentTarget;
     const formData = new FormData(form);
+    
+    const images = [];
+    if (mainImage) images.push(mainImage);
+    if (secondaryImage) images.push(secondaryImage);
+
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
@@ -92,7 +77,7 @@ export default function NovoProduto() {
       categorySlug: (formData.get("categoryName") as string).toLowerCase().replace(/ /g, '-'),
       brandName: formData.get("brandName"),
       brandSlug: (formData.get("brandName") as string).toLowerCase().replace(/ /g, '-'),
-      images: [imageBase64],
+      images: images,
     };
 
     try {
@@ -215,13 +200,40 @@ export default function NovoProduto() {
               </div>
             </div>
 
-            {/* Imagem do Produto */}
-            <div className="space-y-2 col-span-1 md:col-span-2 mt-4">
-              <label className="text-[13px] font-bold text-hotPink uppercase tracking-wider ml-1">Imagem do Produto (Upload)</label>
+            {/* Imagem do Produto (Principal) */}
+            <div className="space-y-2 col-span-1 mt-4">
+              <label className="text-[13px] font-bold text-hotPink uppercase tracking-wider ml-1">Imagem Principal (Capa)</label>
               <div className="relative">
-                <input required type="file" accept="image/*" onChange={handleImageChange} className="w-full h-14 pl-4 pr-4 bg-white rounded-2xl border-2 border-pink-100 focus:bg-pink-50/30 focus:border-vibrantPink focus:ring-4 focus:ring-pink-100/50 outline-none transition-all text-gray-800 font-bold shadow-sm shadow-pink-100/50 flex items-center pt-3" />
+                {mainImage ? (
+                  <div className="relative w-full h-40 bg-gray-100 rounded-2xl overflow-hidden border-2 border-pink-100">
+                    <img src={mainImage} alt="Capa" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setMainImage("")} className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition">✕</button>
+                  </div>
+                ) : (
+                  <input required type="file" accept="image/*" onChange={(e) => {
+                    if (e.target.files?.[0]) processImage(e.target.files[0], setMainImage);
+                  }} className="w-full h-14 pl-4 pr-4 bg-white rounded-2xl border-2 border-pink-100 focus:border-vibrantPink outline-none font-bold flex items-center pt-3" />
+                )}
               </div>
-              <p className="text-xs text-hotPink/60 ml-2 mt-1 font-bold">Selecione uma imagem real do seu computador (PNG, JPG, JPEG).</p>
+              <p className="text-xs text-hotPink/60 ml-2 mt-1 font-bold">Primeira imagem (obrigatória).</p>
+            </div>
+
+            {/* Imagem do Produto (Secundária) */}
+            <div className="space-y-2 col-span-1 mt-4">
+              <label className="text-[13px] font-bold text-hotPink uppercase tracking-wider ml-1">Imagem Secundária</label>
+              <div className="relative">
+                {secondaryImage ? (
+                  <div className="relative w-full h-40 bg-gray-100 rounded-2xl overflow-hidden border-2 border-pink-100">
+                    <img src={secondaryImage} alt="Secundária" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setSecondaryImage("")} className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition">✕</button>
+                  </div>
+                ) : (
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    if (e.target.files?.[0]) processImage(e.target.files[0], setSecondaryImage);
+                  }} className="w-full h-14 pl-4 pr-4 bg-white rounded-2xl border-2 border-pink-100 focus:border-vibrantPink outline-none font-bold flex items-center pt-3" />
+                )}
+              </div>
+              <p className="text-xs text-hotPink/60 ml-2 mt-1 font-bold">Segunda imagem (opcional).</p>
             </div>
 
           </div>

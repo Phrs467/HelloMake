@@ -88,8 +88,8 @@ export class ProductsController {
 
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: any) {
-    // Atualização simples (MVP)
-    return this.prisma.produto.update({
+    // Primeiro, atualiza os dados básicos do produto
+    const produto = await this.prisma.produto.update({
       where: { id },
       data: {
         nome: data.name,
@@ -98,6 +98,29 @@ export class ProductsController {
         estoque: data.stock
       }
     });
+
+    // Se vieram imagens no request, atualiza
+    if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+      // Deleta as antigas
+      await this.prisma.imagemProduto.deleteMany({
+        where: { produtoId: id }
+      });
+      
+      // Insere as novas (index 0 é a principal)
+      await this.prisma.produto.update({
+        where: { id },
+        data: {
+          imagens: {
+            create: data.images.map((url: string, index: number) => ({
+              url,
+              principal: index === 0
+            }))
+          }
+        }
+      });
+    }
+
+    return produto;
   }
 
   @Delete(':id')

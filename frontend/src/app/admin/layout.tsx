@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             Sair e Deslogar
           </button>
           <div className="text-[10px] text-gray-400 text-center font-mono select-none border-t border-pink-50 pt-2">
-            Versão: 1.1.1 (Categorias Dinâmicas)
+            Versão: 1.2.0 (Múltiplas Imagens)
           </div>
         </div>
       </aside>

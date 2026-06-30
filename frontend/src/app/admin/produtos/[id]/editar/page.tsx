@@ -15,52 +15,33 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [productData, setProductData] = useState<any>(null);
-  const [imageBase64, setImageBase64] = useState("");
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          let width = img.width;
-          let height = img.height;
-
-          const MAX_WIDTH = 1200;
-          const MAX_HEIGHT = 1200;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-            setImageBase64(compressedBase64);
-          } else {
-            setImageBase64(reader.result as string);
-          }
-        };
-        img.src = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
+  const [mainImage, setMainImage] = useState("");
+  const [secondaryImage, setSecondaryImage] = useState("");
   const [categories, setCategories] = useState<any[]>([]);
+
+  const processImage = (file: File, callback: (base64: string) => void) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+        const MAX = 1200;
+        if (width > height && width > MAX) { height *= MAX / width; width = MAX; }
+        else if (height > MAX) { width *= MAX / height; height = MAX; }
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL("image/jpeg", 0.7));
+        } else {
+          callback(reader.result as string);
+        }
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -70,7 +51,16 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
           fetch(`${API_BASE_URL}/api/v1/categories`)
         ]);
 
-        if (resProduct.ok) setProductData(await resProduct.json());
+        if (resProduct.ok) {
+          const data = await resProduct.json();
+          setProductData(data);
+          if (data.imagens && data.imagens.length > 0) {
+            setMainImage(data.imagens[0].url);
+            if (data.imagens.length > 1) {
+              setSecondaryImage(data.imagens[1].url);
+            }
+          }
+        }
         if (resCategories.ok) setCategories(await resCategories.json());
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
@@ -85,6 +75,11 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
 
     const form = e.currentTarget;
     const formData = new FormData(form);
+    
+    const images = [];
+    if (mainImage) images.push(mainImage);
+    if (secondaryImage) images.push(secondaryImage);
+
     const data = {
       name: formData.get("name"),
       description: formData.get("description"),
@@ -94,7 +89,7 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
       categorySlug: (formData.get("categoryName") as string).toLowerCase().replace(/ /g, '-'),
       brandName: formData.get("brandName"),
       brandSlug: (formData.get("brandName") as string).toLowerCase().replace(/ /g, '-'),
-      images: [imageBase64 || productData?.imagens?.[0]?.url],
+      images: images,
     };
 
     try {
@@ -213,13 +208,40 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
               </div>
             </div>
 
-            {/* Imagem do Produto */}
-            <div className="space-y-2 col-span-1 md:col-span-2 mt-4">
-              <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider ml-1">Imagem do Produto (Upload)</label>
+            {/* Imagem do Produto (Principal) */}
+            <div className="space-y-2 col-span-1 mt-4">
+              <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider ml-1">Imagem Principal (Capa)</label>
               <div className="relative">
-                <input type="file" accept="image/*" onChange={handleImageChange} className="w-full h-14 pl-4 pr-4 bg-gray-50/50 rounded-2xl border border-gray-200 focus:bg-white focus:border-rosePrimary outline-none transition-all text-gray-800 font-medium flex items-center pt-3" />
+                {mainImage ? (
+                  <div className="relative w-full h-40 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+                    <img src={mainImage} alt="Capa" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setMainImage("")} className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition">✕</button>
+                  </div>
+                ) : (
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    if (e.target.files?.[0]) processImage(e.target.files[0], setMainImage);
+                  }} className="w-full h-14 pl-4 pr-4 bg-gray-50/50 rounded-2xl border border-gray-200 focus:bg-white focus:border-rosePrimary outline-none transition-all text-gray-800 font-medium flex items-center pt-3" />
+                )}
               </div>
-              <p className="text-xs text-gray-500 ml-2 mt-1">Selecione uma nova imagem real se desejar substituir a atual.</p>
+              <p className="text-xs text-gray-500 ml-2 mt-1">Primeira imagem (obrigatória).</p>
+            </div>
+
+            {/* Imagem do Produto (Secundária) */}
+            <div className="space-y-2 col-span-1 mt-4">
+              <label className="text-[13px] font-bold text-gray-500 uppercase tracking-wider ml-1">Imagem Secundária</label>
+              <div className="relative">
+                {secondaryImage ? (
+                  <div className="relative w-full h-40 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200">
+                    <img src={secondaryImage} alt="Secundária" className="w-full h-full object-cover" />
+                    <button type="button" onClick={() => setSecondaryImage("")} className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black transition">✕</button>
+                  </div>
+                ) : (
+                  <input type="file" accept="image/*" onChange={(e) => {
+                    if (e.target.files?.[0]) processImage(e.target.files[0], setSecondaryImage);
+                  }} className="w-full h-14 pl-4 pr-4 bg-gray-50/50 rounded-2xl border border-gray-200 focus:bg-white focus:border-rosePrimary outline-none transition-all text-gray-800 font-medium flex items-center pt-3" />
+                )}
+              </div>
+              <p className="text-xs text-gray-500 ml-2 mt-1">Segunda imagem (opcional).</p>
             </div>
 
           </div>
