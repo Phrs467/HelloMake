@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Package, DollarSign, Tag, Bookmark, FileText, CheckCircle2 } from "lucide-react";
@@ -12,6 +12,21 @@ export default function NovoProduto() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [imageBase64, setImageBase64] = useState("");
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/v1/categories`);
+        if (res.ok) {
+          setCategories(await res.json());
+        }
+      } catch (err) {
+        console.error("Erro ao carregar categorias:", err);
+      }
+    }
+    loadCategories();
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -169,10 +184,9 @@ export default function NovoProduto() {
               <div className="relative">
                 <select required name="categoryName" defaultValue="" className="w-full h-14 pl-12 pr-4 bg-white rounded-2xl border-2 border-pink-100 focus:bg-pink-50/30 focus:border-vibrantPink focus:ring-4 focus:ring-pink-100/50 outline-none transition-all text-gray-800 font-bold appearance-none cursor-pointer shadow-sm shadow-pink-100/50">
                   <option value="" disabled>Selecione uma categoria...</option>
-                  <option value="Maquiagem">Maquiagem</option>
-                  <option value="Skincare">Skincare</option>
-                  <option value="Perfumaria">Perfumaria</option>
-                  <option value="Kits Especiais">Kits Especiais</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.nome}>{cat.nome}</option>
+                  ))}
                 </select>
                 <Bookmark className="w-5 h-5 text-pink-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-pink-400">

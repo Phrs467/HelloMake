@@ -60,14 +60,23 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
     }
   };
 
+  const [categories, setCategories] = useState<any[]>([]);
+
   useEffect(() => {
-    async function load() {
-      const res = await fetch(`${API_BASE_URL}/api/v1/products/${productId}`);
-      if (res.ok) {
-        setProductData(await res.json());
+    async function loadData() {
+      try {
+        const [resProduct, resCategories] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/products/${productId}`),
+          fetch(`${API_BASE_URL}/api/v1/categories`)
+        ]);
+
+        if (resProduct.ok) setProductData(await resProduct.json());
+        if (resCategories.ok) setCategories(await resCategories.json());
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
       }
     }
-    load();
+    loadData();
   }, [productId]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -175,10 +184,9 @@ export default function EditarProduto({ params }: { params: Promise<{ id: string
               <div className="relative">
                 <select required name="categoryName" defaultValue={productData.categoria?.nome || ""} className="w-full h-14 pl-12 pr-4 bg-gray-50/50 rounded-2xl border border-gray-200 focus:bg-white focus:border-rosePrimary outline-none transition-all text-gray-800 font-medium appearance-none cursor-pointer">
                   <option value="" disabled>Selecione uma categoria...</option>
-                  <option value="Maquiagem">Maquiagem</option>
-                  <option value="Skincare">Skincare</option>
-                  <option value="Perfumaria">Perfumaria</option>
-                  <option value="Kits Especiais">Kits Especiais</option>
+                  {categories.map((cat: any) => (
+                    <option key={cat.id} value={cat.nome}>{cat.nome}</option>
+                  ))}
                 </select>
                 <Bookmark className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
