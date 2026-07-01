@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 
 @Controller('api/v1/products')
@@ -46,29 +46,70 @@ export class ProductsController {
 
   @Post()
   async create(@Body() data: any) {
-    // Busca ou cria a categoria e a marca usando os nomes fornecidos
-    let categoria = await this.prisma.categoria.findUnique({ where: { slug: data.categorySlug } });
+    const price = typeof data.price === 'number' && !isNaN(data.price) ? data.price : parseFloat(data.price);
+    const stock = typeof data.stock === 'number' && !isNaN(data.stock) ? data.stock : parseInt(data.stock, 10);
+
+    if (isNaN(price)) {
+      throw new BadRequestException('O preço fornecido é inválido.');
+    }
+
+    // Busca ou cria a categoria usando OR para evitar duplicados ou conflitos de unique constraint
+    const categoryName = data.categoryName?.trim();
+    const categorySlug = data.categorySlug?.trim() || categoryName?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+
+    let categoria = await this.prisma.categoria.findFirst({
+      where: {
+        OR: [
+          { slug: categorySlug },
+          { nome: categoryName }
+        ]
+      }
+    });
+
     if (!categoria) {
       categoria = await this.prisma.categoria.create({
-        data: { nome: data.categoryName, slug: data.categorySlug }
+        data: { nome: categoryName, slug: categorySlug }
       });
     }
 
-    let marca = await this.prisma.marca.findUnique({ where: { slug: data.brandSlug } });
+    // Busca ou cria a marca usando OR para evitar conflito de unique constraint (nome/slug)
+    const brandName = data.brandName?.trim();
+    const brandSlug = data.brandSlug?.trim() || brandName?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+
+    let marca = await this.prisma.marca.findFirst({
+      where: {
+        OR: [
+          { slug: brandSlug },
+          { nome: brandName }
+        ]
+      }
+    });
+
     if (!marca) {
       marca = await this.prisma.marca.create({
-        data: { nome: data.brandName, slug: data.brandSlug }
+        data: { nome: brandName, slug: brandSlug }
       });
+    }
+
+    // Gera um slug limpo e único para o Produto
+    const baseSlug = data.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+    let productSlug = baseSlug;
+    let slugExists = await this.prisma.produto.findUnique({ where: { slug: productSlug } });
+    let counter = 1;
+    while (slugExists) {
+      productSlug = `${baseSlug}-${counter}`;
+      slugExists = await this.prisma.produto.findUnique({ where: { slug: productSlug } });
+      counter++;
     }
 
     // Cria o Produto
     return this.prisma.produto.create({
       data: {
-        nome: data.name,
-        slug: data.name.toLowerCase().replace(/\s+/g, '-'),
+        nome: data.name.trim(),
+        slug: productSlug,
         descricao: data.description,
-        preco: data.price,
-        estoque: data.stock || 10,
+        preco: price,
+        estoque: isNaN(stock) ? 10 : stock,
         categoriaId: categoria.id,
         marcaId: marca.id,
         imagens: {

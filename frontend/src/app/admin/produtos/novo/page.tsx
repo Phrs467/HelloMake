@@ -68,15 +68,23 @@ export default function NovoProduto() {
     if (mainImage) images.push(mainImage);
     if (secondaryImage) images.push(secondaryImage);
 
+    const rawPrice = (formData.get("price") as string || "").replace(",", ".");
+    const price = parseFloat(rawPrice);
+    const stock = parseInt(formData.get("stock") as string, 10);
+    const name = (formData.get("name") as string || "").trim();
+    const description = (formData.get("description") as string || "").trim();
+    const categoryName = (formData.get("categoryName") as string || "").trim();
+    const brandName = (formData.get("brandName") as string || "").trim();
+
     const data = {
-      name: formData.get("name"),
-      description: formData.get("description"),
-      price: parseFloat(formData.get("price") as string),
-      stock: parseInt(formData.get("stock") as string, 10),
-      categoryName: formData.get("categoryName"),
-      categorySlug: (formData.get("categoryName") as string).toLowerCase().replace(/ /g, '-'),
-      brandName: formData.get("brandName"),
-      brandSlug: (formData.get("brandName") as string).toLowerCase().replace(/ /g, '-'),
+      name,
+      description,
+      price: isNaN(price) ? 0 : price,
+      stock: isNaN(stock) ? 0 : stock,
+      categoryName,
+      categorySlug: categoryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'),
+      brandName,
+      brandSlug: brandName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-'),
       images: images,
     };
 
